@@ -3,6 +3,7 @@ from typing import Optional
 
 import requests
 from bs4 import BeautifulSoup
+from requests import TooManyRedirects
 
 from model.news import News
 
@@ -16,7 +17,11 @@ class PageExtractor(ABC):
         self._soup = self.get_soup(url)
 
     def get_soup(self, url: str):
-        r = requests.get(url, headers=self.request_headers)
+        try:
+            r = requests.get(url, headers=self.request_headers)
+        except TooManyRedirects as e:
+            print(f"exception: {e} url: {url}")
+            return None
 
         # 防止乱码
         # 原理：如果requests没有在header中推测出编码，则按照协议，使用ISO-8859-1编码，这就是容易出现乱码的情形
